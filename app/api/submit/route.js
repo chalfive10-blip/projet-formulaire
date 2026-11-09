@@ -20,12 +20,18 @@ export async function POST(req) {
     if (q.type === "multi") {
       const raw = body?.[q.id];
       const list = [...new Set((Array.isArray(raw) ? raw : []).map((x) => String(x).trim().slice(0, 200)))];
-      const valid = (x) => q.options.includes(x) || (q.other && x.startsWith(`${q.other} : `) && x.length > q.other.length + 3);
+      const details = Object.keys(q.details || {});
+      // Une option « à compléter » doit arriver sous la forme « Option : texte »
+      const valid = (x) =>
+        (q.options.includes(x) && !details.includes(x)) ||
+        (q.other && x.startsWith(`${q.other} : `) && x.length > q.other.length + 3) ||
+        details.some((d) => x.startsWith(`${d} : `) && x.length > d.length + 3);
       const ex = q.exclusive || [];
       const bad =
         list.length > q.options.length + 1 ||
         !list.every(valid) ||
         list.filter((x) => x.startsWith(`${q.other} : `)).length > 1 ||
+        details.some((d) => list.filter((x) => x.startsWith(`${d} : `)).length > 1) ||
         (list.length > 1 && list.some((x) => ex.includes(x))) ||
         (q.required && !list.length);
       if (bad) return Response.json({ error: `Réponse invalide : ${q.label}` }, { status: 400 });

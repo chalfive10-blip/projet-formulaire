@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { QUESTIONS, REDIRECT_URL, validateValue } from "../lib/questions";
 
 const OTHER = "__other__";
@@ -73,11 +73,23 @@ export default function Page() {
   const stepRef = useRef(null);
   const timer = useRef(null);
 
+  const detailKey = (q, opt) => `${q.id}|${opt}`;
+  const detailOf = (q, opt) => (others[detailKey(q, opt)] || "").trim();
+  const missingDetail = (q, selected) =>
+    selected.find((o) => q.details?.[o] && !detailOf(q, o));
+
   const answerOf = (q) => {
     const v = values[q.id];
     if (q.type === "multi")
-      return (v || []).map((o) => (o === OTHER ? `${q.other} : ${(others[q.id] || "").trim()}` : o));
+      return (v || []).map((o) =>
+        o === OTHER
+          ? `${q.other} : ${(others[q.id] || "").trim()}`
+          : q.details?.[o]
+          ? `${o} : ${detailOf(q, o)}`
+          : o
+      );
     if (v === OTHER) return `Autre : ${(others[q.id] || "").trim()}`;
+    if (q.details?.[v]) return `${v} : ${detailOf(q, v)}`;
     return (v ?? "").toString().trim();
   };
 
@@ -86,12 +98,14 @@ export default function Page() {
       const v = values[q.id] || [];
       if (!v.length) return q.required ? "Choisissez au moins une réponse." : null;
       if (v.includes(OTHER) && !(others[q.id] || "").trim()) return "Précisez en quelques mots.";
+      if (missingDetail(q, v)) return `Indiquez le ${q.details[missingDetail(q, v)].toLowerCase()}.`;
       return null;
     }
     if (q.type === "choice") {
       const v = values[q.id];
       if (!v) return "Choisissez une réponse.";
       if (v === OTHER && !(others[q.id] || "").trim()) return "Précisez en quelques mots.";
+      if (missingDetail(q, [v])) return `Indiquez le ${q.details[v].toLowerCase()}.`;
       return null;
     }
     return validateValue(q, values[q.id]);
@@ -135,7 +149,7 @@ export default function Page() {
   const pick = (q, idx, opt) => {
     setVal(q.id, opt);
     // Avance seule après un choix simple (mobile), sauf "Autre" et dernière question
-    if (opt !== OTHER && !q.final && window.matchMedia("(max-width: 899px)").matches) {
+    if (opt !== OTHER && !q.details?.[opt] && !q.final && window.matchMedia("(max-width: 899px)").matches) {
       clearTimeout(timer.current);
       timer.current = setTimeout(() => goTo(idx + 1, "fwd"), 320);
     }
@@ -289,8 +303,10 @@ export default function Page() {
                     {[...qq.options, ...(qq.other ? [OTHER] : [])].map((opt) => {
                       const multi = qq.type === "multi";
                       const on = multi ? (values[qq.id] || []).includes(opt) : values[qq.id] === opt;
+                      const detail = opt !== OTHER && qq.details?.[opt];
                       return (
-                        <label key={opt} className={`choice${multi ? " multi" : ""}${on ? " on" : ""}`}>
+                        <Fragment key={opt}>
+                        <label className={`choice${multi ? " multi" : ""}${on ? " on" : ""}`}>
                           <input
                             type={multi ? "checkbox" : "radio"}
                             name={qq.id}
@@ -300,6 +316,23 @@ export default function Page() {
                           {multi ? <Check on={on} /> : <Roof />}
                           <span>{opt === OTHER ? qq.other + "…" : opt}</span>
                         </label>
+                        {on && detail && (
+                          <input
+                            type="text"
+                            className="field other detail"
+                            placeholder={detail}
+                            aria-label={detail}
+                            maxLength={120}
+                            value={others[detailKey(qq, opt)] || ""}
+                            onChange={(e) => {
+                              setOthers((s) => ({ ...s, [detailKey(qq, opt)]: e.target.value }));
+                              setErrors((s) => ({ ...s, [qq.id]: null }));
+                            }}
+                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), qq.final ? submit() : next())}
+                            autoFocus
+                          />
+                        )}
+                        </Fragment>
                       );
                     })}
                     {(qq.type === "multi" ? (values[qq.id] || []).includes(OTHER) : values[qq.id] === OTHER) && (

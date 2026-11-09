@@ -124,6 +124,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .field:focus { border-bottom-color: var(--or); }
 .field[aria-invalid="true"] { border-bottom-color: var(--alerte); }
 .field.other { margin-top: 18px; font-size: 20px; }
+.field.other.detail { margin: 0 0 8px; padding-left: 4px; font-size: 18px; }
 
 .choices { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
 .choice {

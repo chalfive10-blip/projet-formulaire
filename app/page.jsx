@@ -117,6 +117,12 @@ export default function Page() {
   };
   const back = () => step >= 0 && goTo(step - 1, "back");
 
+  // Chaque question s'affiche depuis le haut (mobile : la zone défilante est partagée entre les questions)
+  useEffect(() => {
+    if (step < 0 || !window.matchMedia("(max-width: 899px)").matches) return;
+    stepRef.current?.closest(".steps")?.scrollTo(0, 0);
+  }, [step]);
+
   // Focus du champ à chaque nouvelle question (mobile)
   useEffect(() => {
     if (step < 0 || !window.matchMedia("(max-width: 899px)").matches) return;

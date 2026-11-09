@@ -1,0 +1,8 @@
+# Netlify : compile l'application Next.js (pages + route /api/submit)
+# au lieu de publier les fichiers bruts du dépôt.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"

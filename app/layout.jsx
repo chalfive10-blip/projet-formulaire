@@ -23,7 +23,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata = {
-  title: "Chal Five — Faisons connaissance",
+  title: "Chal Five | Faisons connaissance",
   description:
     "Futsal, terrasse, salon de thé et bien-être à Bonamoussadi. Prenez votre mi-temps !",
   icons: { icon: "/symbole.png" },

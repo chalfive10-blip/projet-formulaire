@@ -49,11 +49,11 @@ export async function POST(req) {
     data[q.id] = v;
   }
 
-  const rows = QUESTIONS.map((q) => [q.label, data[q.id] || "— non renseigné —"]);
+  const rows = QUESTIONS.map((q) => [q.label, data[q.id] || "Non renseigné"]);
   const text = rows.map(([k, v]) => `${k} : ${v}`).join("\n");
   const html = `
   <div style="font-family:Arial,sans-serif;background:#0D0D0D;padding:24px;color:#F2F0EB">
-    <h2 style="margin:0 0 4px;color:#D29D2A;font-style:italic;letter-spacing:1px">NOUVELLE RÉPONSE · CHAL FIVE</h2>
+    <h2 style="margin:0 0 4px;color:#D29D2A;font-style:italic;letter-spacing:1px">NOUVELLE RÉPONSE CHAL FIVE</h2>
     <p style="margin:0 0 18px;color:#8C8780;font-size:13px">${new Date().toLocaleString("fr-FR", { timeZone: "Africa/Douala" })}</p>
     <table style="border-collapse:collapse;width:100%;max-width:560px">
       ${rows
@@ -68,8 +68,8 @@ export async function POST(req) {
 
   const { SMTP_USER, SMTP_PASS, MAIL_TO } = process.env;
   const { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, EMAILJS_PRIVATE_KEY } = process.env;
-  const to = MAIL_TO || "chalfive237@gmail.com";
-  const subject = `Nouvelle réponse — ${data.nom}`;
+  const to = MAIL_TO || "chalfive10@gmail.com";
+  const subject = `Nouvelle réponse de ${data.nom}`;
 
   // 1) Envoi via EmailJS (prioritaire si configuré : pas besoin de mot de passe Gmail)
   if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY && EMAILJS_PRIVATE_KEY) {

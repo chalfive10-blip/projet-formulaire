@@ -12,8 +12,5 @@
     "nodemailer": "^6.9.16",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
-  },
-  "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.16.6"
   }
 }

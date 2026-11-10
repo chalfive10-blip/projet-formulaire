@@ -225,8 +225,7 @@ export default function Page() {
             Merci, <span className="gold">à très vite</span> sur le terrain !
           </h1>
           <p className="lead">
-            Notre équipe vous recontactera très bientôt. Vous allez être redirigé(e) vers
-            chalfive.com dans {count} s.
+            Notre équipe vous recontactera très bientôt. Redirection vers chalfive.com dans {count} s.
           </p>
           <a className="btn gold-btn" href={REDIRECT_URL}>
             Visiter chalfive.com <Arrow />
@@ -247,18 +246,18 @@ export default function Page() {
       <section className="intro" data-active={step === -1}>
         <div className="intro-inner">
           <img src="/logo.png" alt="Chal Five" className="intro-logo" width="280" />
-          <p className="kicker">Futsal · Terrasse · Salon de thé</p>
+          <p className="kicker">Futsal, terrasse et salon de thé</p>
           <h1 className="intro-title">
             Prenez votre <span className="gold">mi&#8209;temps&nbsp;!</span>
           </h1>
           <p className="lead">
             Futsal, sport, bien-être et loisirs à Bonamoussadi. Quelques questions rapides pour mieux
-            vous connaître — moins d'une minute.
+            vous connaître. Moins d'une minute.
           </p>
           <button type="button" className="btn gold-btn only-mobile" onClick={() => goTo(0, "fwd")}>
             Commencer <Arrow />
           </button>
-          <p className="legal">chalfive237@gmail.com</p>
+          <p className="legal">chalfive10@gmail.com</p>
         </div>
       </section>
 
@@ -314,7 +313,7 @@ export default function Page() {
                             onChange={() => (multi ? toggle(qq, opt) : pick(qq, i, opt))}
                           />
                           {multi ? <Check on={on} /> : <Roof />}
-                          <span>{opt === OTHER ? qq.other + "…" : opt}</span>
+                          <span>{opt === OTHER ? qq.other : opt}</span>
                         </label>
                         {on && detail && (
                           <input
@@ -388,7 +387,7 @@ export default function Page() {
                     />
                     {serverError && <p className="err" role="alert">{serverError}</p>}
                     <button type="submit" className="btn gold-btn big" disabled={status === "sending"}>
-                      {status === "sending" ? "Envoi en cours…" : "Envoyer"} <Arrow />
+                      {status === "sending" ? "Envoi en cours" : "Envoyer"} <Arrow />
                     </button>
                     <p className="legal">Vos informations ne servent qu'à vous répondre. Merci pour votre confiance.</p>
                   </div>

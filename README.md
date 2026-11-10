@@ -4,7 +4,7 @@
     npm install
     npm run dev        # http://localhost:3000
 
-## Recevoir les réponses par e-mail (chalfive237@gmail.com)
+## Recevoir les réponses par e-mail (chalfive10@gmail.com)
 1. Copier `.env.example` en `.env.local`
 2. Créer un « mot de passe d'application » Google (validation en 2 étapes requise) :
    https://myaccount.google.com/apppasswords

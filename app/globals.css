@@ -96,6 +96,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   .nav .gold-btn { padding: 0 22px; }
 }
 .q-title .qm { color: var(--ivoire); white-space: nowrap; }
+/* Le « ? » reste dans le flux du mot précédent (sinon l'animation mobile en fait un bloc séparé qui peut passer à la ligne) */
+.step[data-active="true"] .q-title .qm { display: inline; }
 .grow { flex: 1; }
 .btn:focus-visible, .choice:has(input:focus-visible), .field:focus-visible {
   outline: 2px solid var(--ivoire); outline-offset: 3px;

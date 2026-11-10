@@ -67,14 +67,49 @@ export async function POST(req) {
   </div>`;
 
   const { SMTP_USER, SMTP_PASS, MAIL_TO } = process.env;
+  const { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, EMAILJS_PRIVATE_KEY } = process.env;
   const to = MAIL_TO || "chalfive237@gmail.com";
+  const subject = `Nouvelle réponse — ${data.nom}`;
 
+  // 1) Envoi via EmailJS (prioritaire si configuré : pas besoin de mot de passe Gmail)
+  if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY && EMAILJS_PRIVATE_KEY) {
+    try {
+      const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          service_id: EMAILJS_SERVICE_ID,
+          template_id: EMAILJS_TEMPLATE_ID,
+          user_id: EMAILJS_PUBLIC_KEY,
+          accessToken: EMAILJS_PRIVATE_KEY,
+          template_params: {
+            subject,
+            message_html: html,
+            message: text,
+            to_email: to,
+            reply_to: data.email || to,
+            nom: data.nom,
+            // Variables du modèle EmailJS par défaut ({{name}}, {{time}})
+            name: data.nom,
+            time: new Date().toLocaleString("fr-FR", { timeZone: "Africa/Douala" }),
+          },
+        }),
+      });
+      if (!res.ok) throw new Error(`EmailJS ${res.status} : ${await res.text()}`);
+      return Response.json({ ok: true });
+    } catch (e) {
+      console.error("Erreur d'envoi EmailJS", e);
+      return Response.json({ error: "Échec de l'envoi" }, { status: 500 });
+    }
+  }
+
+  // 2) Sinon, envoi direct par Gmail (SMTP + mot de passe d'application)
   if (!SMTP_USER || !SMTP_PASS) {
     if (process.env.NODE_ENV !== "production") {
       console.log("\n[DEV] SMTP non configuré — réponse reçue :\n" + text + "\n");
       return Response.json({ ok: true, dev: true });
     }
-    console.error("SMTP_USER / SMTP_PASS manquants");
+    console.error("Aucun envoi configuré : variables EMAILJS_* ou SMTP_USER / SMTP_PASS manquantes");
     return Response.json({ error: "Envoi non configuré" }, { status: 500 });
   }
 
@@ -89,7 +124,7 @@ export async function POST(req) {
       from: `"Formulaire Chal Five" <${SMTP_USER}>`,
       to,
       replyTo: data.email || undefined,
-      subject: `Nouvelle réponse — ${data.nom}`,
+      subject,
       text,
       html,
     });

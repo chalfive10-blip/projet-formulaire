@@ -90,6 +90,34 @@ export default function Page() {
     setErrors((e) => ({ ...e, [q.id]: null }));
   };
 
+  // ───────── Brouillon : les réponses en cours survivent à une actualisation ─────────
+  // Stockées uniquement dans le navigateur de la personne, effacées après l'envoi ou au bout de 7 jours.
+  const DRAFT_KEY = "chalfive-formulaire-brouillon";
+  const DRAFT_TTL = 7 * 24 * 3600 * 1000;
+  const [restored, setRestored] = useState(false);
+
+  useEffect(() => {
+    try {
+      const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+      if (d && Date.now() - d.savedAt < DRAFT_TTL) {
+        setValues(d.values || {});
+        setOthers(d.others || {});
+        setSubs(d.subs || {});
+        if (Number.isInteger(d.step) && d.step >= 0 && d.step < TOTAL) setStep(d.step);
+      } else if (d) localStorage.removeItem(DRAFT_KEY);
+    } catch {}
+    setRestored(true);
+  }, []);
+
+  useEffect(() => {
+    if (!restored || status === "done") return;
+    try {
+      const empty = !Object.keys(values).length && !Object.keys(others).length && !Object.keys(subs).length;
+      if (empty && step < 0) localStorage.removeItem(DRAFT_KEY);
+      else localStorage.setItem(DRAFT_KEY, JSON.stringify({ values, others, subs, step, savedAt: Date.now() }));
+    } catch {}
+  }, [restored, values, others, subs, step, status]);
+
   const answerOf = (q) => {
     const v = values[q.id];
     if (q.type === "multi")
@@ -209,6 +237,7 @@ export default function Page() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || "Erreur");
+      try { localStorage.removeItem(DRAFT_KEY); } catch {}
       setStatus("done");
     } catch (err) {
       setStatus("idle");

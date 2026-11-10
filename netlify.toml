@@ -6,3 +6,8 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+# Module Next.js de Netlify déclaré explicitement : sans lui, un build lancé
+# depuis GitHub publie le dossier .next en fichiers bruts (site en 404).
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

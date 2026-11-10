@@ -21,9 +21,18 @@ export async function POST(req) {
       const raw = body?.[q.id];
       const list = [...new Set((Array.isArray(raw) ? raw : []).map((x) => String(x).trim().slice(0, 200)))];
       const details = Object.keys(q.details || {});
+      const subs = q.sub || {};
+      // « Option : Sous-choix » ou « Option : A et B », sous-choix pris dans la liste, sans doublon
+      const validSub = (x) =>
+        Object.entries(subs).some(([o, list]) => {
+          if (!x.startsWith(`${o} : `)) return false;
+          const parts = x.slice(o.length + 3).split(" et ");
+          return parts.length > 0 && parts.every((p) => list.includes(p)) && new Set(parts).size === parts.length;
+        });
       // Une option « à compléter » doit arriver sous la forme « Option : texte »
       const valid = (x) =>
-        (q.options.includes(x) && !details.includes(x)) ||
+        (q.options.includes(x) && !details.includes(x) && !subs[x]) ||
+        validSub(x) ||
         (q.other && x.startsWith(`${q.other} : `) && x.length > q.other.length + 3) ||
         details.some((d) => x.startsWith(`${d} : `) && x.length > d.length + 3);
       const ex = q.exclusive || [];
@@ -32,6 +41,7 @@ export async function POST(req) {
         !list.every(valid) ||
         list.filter((x) => x.startsWith(`${q.other} : `)).length > 1 ||
         details.some((d) => list.filter((x) => x.startsWith(`${d} : `)).length > 1) ||
+        Object.keys(subs).some((o) => list.filter((x) => x.startsWith(`${o} : `)).length > 1) ||
         (list.length > 1 && list.some((x) => ex.includes(x))) ||
         (q.required && !list.length);
       if (bad) return Response.json({ error: `Réponse invalide : ${q.label}` }, { status: 400 });

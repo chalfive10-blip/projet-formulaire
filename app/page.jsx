@@ -77,6 +77,18 @@ export default function Page() {
   const detailOf = (q, opt) => (others[detailKey(q, opt)] || "").trim();
   const missingDetail = (q, selected) =>
     selected.find((o) => q.details?.[o] && !detailOf(q, o));
+  // Sous-choix (ex. Réservation d'un terrain : Séance de futsal, Évènementiel)
+  const [subs, setSubs] = useState({});
+  const subOf = (q, opt) => (q.sub?.[opt] || []).filter((s) => (subs[detailKey(q, opt)] || []).includes(s));
+  const missingSub = (q, selected) => selected.find((o) => q.sub?.[o] && !subOf(q, o).length);
+  const toggleSub = (q, opt, s) => {
+    const k = detailKey(q, opt);
+    setSubs((cur) => {
+      const list = cur[k] || [];
+      return { ...cur, [k]: list.includes(s) ? list.filter((x) => x !== s) : [...list, s] };
+    });
+    setErrors((e) => ({ ...e, [q.id]: null }));
+  };
 
   const answerOf = (q) => {
     const v = values[q.id];
@@ -86,6 +98,8 @@ export default function Page() {
           ? `${q.other} : ${(others[q.id] || "").trim()}`
           : q.details?.[o]
           ? `${o} : ${detailOf(q, o)}`
+          : q.sub?.[o]
+          ? `${o} : ${subOf(q, o).join(" et ")}`
           : o
       );
     if (v === OTHER) return `Autre : ${(others[q.id] || "").trim()}`;
@@ -99,6 +113,7 @@ export default function Page() {
       if (!v.length) return q.required ? "Choisissez au moins une réponse." : null;
       if (v.includes(OTHER) && !(others[q.id] || "").trim()) return "Précisez en quelques mots.";
       if (missingDetail(q, v)) return `Indiquez le ${q.details[missingDetail(q, v)].toLowerCase()}.`;
+      if (missingSub(q, v)) return `Précisez : ${q.sub[missingSub(q, v)].join(" ou ").toLowerCase()}.`;
       return null;
     }
     if (q.type === "choice") {
@@ -303,6 +318,7 @@ export default function Page() {
                       const multi = qq.type === "multi";
                       const on = multi ? (values[qq.id] || []).includes(opt) : values[qq.id] === opt;
                       const detail = opt !== OTHER && qq.details?.[opt];
+                      const subList = opt !== OTHER && qq.sub?.[opt];
                       return (
                         <Fragment key={opt}>
                         <label className={`choice${multi ? " multi" : ""}${on ? " on" : ""}`}>
@@ -330,6 +346,20 @@ export default function Page() {
                             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), qq.final ? submit() : next())}
                             autoFocus
                           />
+                        )}
+                        {on && subList && (
+                          <div className="subchoices" role="group" aria-label={`Précisez : ${opt}`}>
+                            {subList.map((s) => {
+                              const sOn = subOf(qq, opt).includes(s);
+                              return (
+                                <label key={s} className={`subchoice${sOn ? " on" : ""}`}>
+                                  <input type="checkbox" checked={sOn} onChange={() => toggleSub(qq, opt, s)} />
+                                  <Check on={sOn} />
+                                  <span>{s}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
                         )}
                         </Fragment>
                       );
